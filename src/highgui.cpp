@@ -14,7 +14,7 @@ mrb_mruby_opencv_imshow(mrb_state *mrb, mrb_value self)
   mrb_value mat_value;
   int argc = mrb_get_args(mrb, "zo", &name, &mat_value);
   if (argc == 2) {
-    cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, mat_value, &mrb_mruby_opencv_type);
+    cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, mat_value, &mrb_mruby_opencv_data_type);
     if (mat) {
       //cv::imshow(name, *mat);
       IplImage iplImg = *mat;
@@ -54,7 +54,7 @@ mrb_mruby_opencv_imread(mrb_state *mrb, mrb_value self)
     if (mat_class)
     {
       cv::Mat* mat = new cv::Mat();
-      struct RData* data = mrb_data_object_alloc(mrb, mat_class, mat, &mrb_mruby_opencv_type);
+      struct RData* data = mrb_data_object_alloc(mrb, mat_class, mat, &mrb_mruby_opencv_data_type);
       mrb_value mat_value = mrb_obj_value(data);
 
       //*mat = cv::imread(name);

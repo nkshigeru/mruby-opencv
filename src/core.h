@@ -10,7 +10,7 @@ extern "C" {
 void mrb_mruby_opencv_core_init(mrb_state* mrb, struct RClass *class_cv);
 void mrb_mruby_opencv_core_final(mrb_state* mrb, struct RClass *class_cv);
 
-extern struct mrb_data_type mrb_mruby_opencv_type;
+extern struct mrb_data_type mrb_mruby_opencv_data_type;
 
 #if defined(__cplusplus)
 }  /* extern "C" { */
