@@ -1,9 +1,16 @@
-assert('CV::Mat constructor') do
+assert('CV::Mat constructor1') do
   mat = CV::Mat.new
-  mat.width == 0 && mat.height == 0
+  mat.rows == 0 && mat.cols == 0
+end
+
+assert('CV::Mat constructor2') do
+  mat = CV::Mat.new 480, 640, 0
+  mat.rows == 480 && mat.cols == 640
 end
 
 assert('imread') do
   mat = CV::imread TEST_ARGS['test_jpeg']
-  mat.width == 320 && mat.height == 240
+  mat.rows == 240 && mat.cols == 320
 end
+
+

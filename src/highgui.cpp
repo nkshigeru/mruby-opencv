@@ -5,6 +5,7 @@
 #include "highgui.h"
 #include "core.h"
 #include <opencv2/highgui/highgui.hpp>
+#include <stdio.h>
 
 static mrb_value
 mrb_mruby_opencv_imshow(mrb_state *mrb, mrb_value self)
@@ -48,11 +49,14 @@ mrb_mruby_opencv_imread(mrb_state *mrb, mrb_value self)
   char* name;
   int argc = mrb_get_args(mrb, "z", &name);
   if (argc == 1) {
-    struct RClass *class_cv = mrb_class_get(mrb, "CV");
-    struct RClass *class_mat = mrb_class_ptr(mrb_iv_get(mrb, mrb_obj_value(class_cv), mrb_intern(mrb, "Mat")));
-    mrb_value mat_value = mrb_instance_new(mrb, mrb_obj_value(class_mat));
-    cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, mat_value, &mrb_mruby_opencv_type);
-    if (mat) {
+    struct RClass *cv_class = mrb_class_get(mrb, "CV");
+    struct RClass *mat_class = mrb_class_ptr(mrb_iv_get(mrb, mrb_obj_value(cv_class), mrb_intern(mrb, "Mat")));
+    if (mat_class)
+    {
+      cv::Mat* mat = new cv::Mat();
+      struct RData* data = mrb_data_object_alloc(mrb, mat_class, mat, &mrb_mruby_opencv_type);
+      mrb_value mat_value = mrb_obj_value(data);
+
       //*mat = cv::imread(name);
       IplImage* iplImg = cvLoadImage(name);
       *mat = cv::Mat(iplImg);
