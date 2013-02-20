@@ -34,6 +34,25 @@ mrb_mruby_opencv_initialize(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
+mrb_mruby_opencv_copyTo(mrb_state *mrb, mrb_value self)
+{
+  mrb_value dst_value, mask_value;
+  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  if (mat) {
+    int argc = mrb_get_args(mrb, "o|o", &dst_value, &mask_value);
+    if (argc == 1) {
+      cv::Mat* dst = (cv::Mat*)mrb_get_datatype(mrb, dst_value, &mrb_mruby_opencv_data_type);
+      mat->copyTo(*dst);
+    } else if (argc == 2) {
+      cv::Mat* dst = (cv::Mat*)mrb_get_datatype(mrb, dst_value, &mrb_mruby_opencv_data_type);
+      cv::Mat* mask = (cv::Mat*)mrb_get_datatype(mrb, mask_value, &mrb_mruby_opencv_data_type);
+      mat->copyTo(*dst, *mask);
+    }
+  }
+  return self;
+}
+
+static mrb_value
 mrb_mruby_opencv_aget(mrb_state *mrb, mrb_value self)
 {
   int index;
@@ -109,6 +128,10 @@ mrb_mruby_opencv_core_init(mrb_state* mrb, struct RClass *cv_class) {
   struct RClass *mat_class = mrb_define_class_under(mrb, cv_class, "Mat", mrb->object_class);
   MRB_SET_INSTANCE_TT(mat_class, MRB_TT_DATA);
   mrb_define_method(mrb, mat_class, "initialize", mrb_mruby_opencv_initialize, ARGS_OPT(3));
+  
+  //method
+  mrb_define_method(mrb, mat_class, "copyTo", mrb_mruby_opencv_copyTo, ARGS_REQ(1)|ARGS_OPT(1));
+  
   //array access
   mrb_define_method(mrb, mat_class, "[]", mrb_mruby_opencv_aget, ARGS_NONE());
   mrb_define_method(mrb, mat_class, "[]=", mrb_mruby_opencv_aset, ARGS_NONE());
