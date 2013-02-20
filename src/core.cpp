@@ -1,8 +1,9 @@
 #include <mruby.h>
 #include <mruby/class.h>
 #include <mruby/data.h>
+#include <mruby/variable.h>
 #include "core.h"
-#include <opencv2/core/core.hpp>
+#include "common.h"
 
 static void
 mrb_mruby_opencv_free(mrb_state *mrb, void *p) {
@@ -12,6 +13,21 @@ mrb_mruby_opencv_free(mrb_state *mrb, void *p) {
 struct mrb_data_type mrb_mruby_opencv_data_type = {
   "mrb_mruby_opencv_mat", mrb_mruby_opencv_free,
 };
+
+cv::Mat*
+mrb_mruby_opencv_mat(mrb_state* mrb, mrb_value value) {
+  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, value, &mrb_mruby_opencv_data_type);
+  return mat;
+}
+
+struct RData*
+mrb_mruby_opencv_mat_object_alloc(mrb_state* mrb, cv::Mat* mat)
+{
+  struct RClass* cv_class = mrb_class_get(mrb, "CV");
+  struct RClass* mat_class = mrb_class_ptr(mrb_iv_get(mrb, mrb_obj_value(cv_class), mrb_intern(mrb, "Mat")));
+  struct RData* data = mrb_data_object_alloc(mrb, mat_class, mat, &mrb_mruby_opencv_data_type);
+  return data;
+}
 
 static mrb_value
 mrb_mruby_opencv_initialize(mrb_state *mrb, mrb_value self)
@@ -37,15 +53,15 @@ static mrb_value
 mrb_mruby_opencv_copyTo(mrb_state *mrb, mrb_value self)
 {
   mrb_value dst_value, mask_value;
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
   if (mat) {
     int argc = mrb_get_args(mrb, "o|o", &dst_value, &mask_value);
     if (argc == 1) {
-      cv::Mat* dst = (cv::Mat*)mrb_get_datatype(mrb, dst_value, &mrb_mruby_opencv_data_type);
+      cv::Mat* dst = mrb_mruby_opencv_mat(mrb, dst_value);
       mat->copyTo(*dst);
     } else if (argc == 2) {
-      cv::Mat* dst = (cv::Mat*)mrb_get_datatype(mrb, dst_value, &mrb_mruby_opencv_data_type);
-      cv::Mat* mask = (cv::Mat*)mrb_get_datatype(mrb, mask_value, &mrb_mruby_opencv_data_type);
+      cv::Mat* dst = mrb_mruby_opencv_mat(mrb, dst_value);
+      cv::Mat* mask = mrb_mruby_opencv_mat(mrb, mask_value);
       mat->copyTo(*dst, *mask);
     }
   }
@@ -56,7 +72,7 @@ static mrb_value
 mrb_mruby_opencv_aget(mrb_state *mrb, mrb_value self)
 {
   int index;
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
   if (mat) {
     int argc = mrb_get_args(mrb, "i", &index);
     if (argc == 1) {
@@ -72,7 +88,7 @@ mrb_mruby_opencv_aget(mrb_state *mrb, mrb_value self)
 static mrb_value
 mrb_mruby_opencv_aset(mrb_state *mrb, mrb_value self)
 {
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
   if (mat) {
     int index, value;
     int argc = mrb_get_args(mrb, "ii", &index, &value);
@@ -91,7 +107,7 @@ mrb_mruby_opencv_aset(mrb_state *mrb, mrb_value self)
 static mrb_value
 mrb_mruby_opencv_rows(mrb_state *mrb, mrb_value self)
 {
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
   if (mat) {
     return mrb_fixnum_value(mat->rows);
   }
@@ -101,7 +117,7 @@ mrb_mruby_opencv_rows(mrb_state *mrb, mrb_value self)
 static mrb_value
 mrb_mruby_opencv_cols(mrb_state *mrb, mrb_value self)
 {
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
   if (mat) {
     return mrb_fixnum_value(mat->cols);
   }
@@ -111,7 +127,7 @@ mrb_mruby_opencv_cols(mrb_state *mrb, mrb_value self)
 static mrb_value
 mrb_mruby_opencv_type(mrb_state *mrb, mrb_value self)
 {
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, self, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
   if (mat) {
     return mrb_fixnum_value(mat->type());
   }
