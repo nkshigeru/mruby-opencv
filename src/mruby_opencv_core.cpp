@@ -16,7 +16,7 @@ struct mrb_data_type mrb_mruby_opencv_data_type = {
 
 cv::Mat*
 mrb_mruby_opencv_mat(mrb_state* mrb, mrb_value value) {
-  cv::Mat* mat = (cv::Mat*)mrb_get_datatype(mrb, value, &mrb_mruby_opencv_data_type);
+  cv::Mat* mat = (cv::Mat*)mrb_data_check_get_ptr(mrb, value, &mrb_mruby_opencv_data_type);
   return mat;
 }
 
@@ -69,38 +69,156 @@ mrb_mruby_opencv_copyTo(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
+mrb_mruby_opencv_aget_1b_1(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i;
+  mrb_get_args(mrb, "i", &i);
+  if ((unsigned int)i >= (unsigned int)(mat.rows * mat.step)) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d is out of range", mrb_fixnum_value(i));
+  }
+  return mrb_fixnum_value(mat.data[i]);
+}
+
+static mrb_value
+mrb_mruby_opencv_aget_1b_2(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i, j;
+  mrb_get_args(mrb, "ii", &i, &j);
+  if ((unsigned int)i >= (unsigned int)mat.rows || (unsigned int)j >= (unsigned int)mat.cols) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d,%d is out of range", mrb_fixnum_value(i), mrb_fixnum_value(j));
+  }
+  return mrb_fixnum_value(mat.at<unsigned char>(i, j));
+}
+
+static mrb_value
+mrb_mruby_opencv_aget_1f_1(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i;
+  mrb_get_args(mrb, "i", &i);
+  if ((unsigned int)i >= (unsigned int)(mat.rows * mat.step)) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d is out of range", mrb_fixnum_value(i));
+  }
+  return mrb_float_value(mrb, ((float*)mat.data)[i]);
+}
+
+static mrb_value
+mrb_mruby_opencv_aget_1f_2(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i, j;
+  mrb_get_args(mrb, "ii", &i, &j);
+  if ((unsigned int)i >= (unsigned int)mat.rows || (unsigned int)j >= (unsigned int)mat.cols) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d,%d is out of range", mrb_fixnum_value(i), mrb_fixnum_value(j));
+  }
+  return mrb_float_value(mrb, mat.at<float>(i, j));
+}
+
+static mrb_value
 mrb_mruby_opencv_aget(mrb_state *mrb, mrb_value self)
 {
-  int index;
   cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
-  if (mat) {
-    int argc = mrb_get_args(mrb, "i", &index);
-    if (argc == 1) {
-      if (0 <= index && index < mat->rows * (int)mat->step) {
-        return mrb_fixnum_value(mat->data[index]);
-      }
-      //TODO raise exception ?
-    }
+  if (!mat) {
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", self);
   }
+  int argc = mrb->c->ci->argc;
+  switch(mat->type()) {
+    case CV_8UC1:
+      switch(argc) {
+        case 1:
+          return mrb_mruby_opencv_aget_1b_1(mrb, *mat);
+        case 2:
+          return mrb_mruby_opencv_aget_1b_2(mrb, *mat);
+      }
+      break;
+    case CV_32FC1:
+      switch(argc) {
+        case 1:
+          return mrb_mruby_opencv_aget_1f_1(mrb, *mat);
+        case 2:
+          return mrb_mruby_opencv_aget_1f_2(mrb, *mat);
+      }
+      break;
+  }
+  //TODO raise exception ?
   return mrb_nil_value();
+}
+
+static mrb_value
+mrb_mruby_opencv_aset_1b_1(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i, value;
+  mrb_get_args(mrb, "ii", &i, &value);
+  if ((unsigned int)i >= (unsigned int)(mat.rows * mat.step)) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d is out of range", mrb_fixnum_value(i));
+  }
+  mat.data[i] = value;
+  return mrb_fixnum_value(value);
+}
+
+static mrb_value
+mrb_mruby_opencv_aset_1b_2(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i, j, value;
+  mrb_get_args(mrb, "iii", &i, &j, &value);
+  if ((unsigned int)i >= (unsigned int)mat.rows || (unsigned int)j >= (unsigned int)mat.cols) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d,%d is out of range", mrb_fixnum_value(i), mrb_fixnum_value(j));
+  }
+  mat.at<unsigned char>(i, j) = value;
+  return mrb_fixnum_value(value);
+}
+
+static mrb_value
+mrb_mruby_opencv_aset_1f_1(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i;
+  mrb_float value;
+  mrb_get_args(mrb, "if", &i, &value);
+  if ((unsigned int)i >= (unsigned int)(mat.rows * mat.step)) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d is out of range", mrb_fixnum_value(i));
+  }
+  ((float*)mat.data)[i] = (float)value;
+  return mrb_float_value(mrb, value);
+}
+
+static mrb_value
+mrb_mruby_opencv_aset_1f_2(mrb_state *mrb, cv::Mat& mat)
+{
+  mrb_int i, j;
+  mrb_float value;
+  mrb_get_args(mrb, "iif", &i, &j, &value);
+  if ((unsigned int)i >= (unsigned int)mat.rows || (unsigned int)j >= (unsigned int)mat.cols) {
+    mrb_raisef(mrb, E_INDEX_ERROR, "%d,%d is out of range", mrb_fixnum_value(i), mrb_fixnum_value(j));
+  }
+  mat.at<float>(i, j) = (float)value;
+  return mrb_float_value(mrb, value);
 }
 
 static mrb_value
 mrb_mruby_opencv_aset(mrb_state *mrb, mrb_value self)
 {
   cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
-  if (mat) {
-    int index, value;
-    int argc = mrb_get_args(mrb, "ii", &index, &value);
-    if (argc == 2) {
-      unsigned char bvalue = (unsigned char)value;
-      if (0 <= index && index < mat->rows * (int)mat->step) {
-        mat->data[index] = bvalue;
-        return mrb_fixnum_value(bvalue);
-      }
-      //TODO raise exception ?
-    }
+  if (!mat) {
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", self);
   }
+  int argc = mrb->c->ci->argc;
+  switch(mat->type()) {
+    case CV_8UC1:
+      switch(argc) {
+        case 2:
+          return mrb_mruby_opencv_aset_1b_1(mrb, *mat);
+        case 3:
+          return mrb_mruby_opencv_aset_1b_2(mrb, *mat);
+      }
+      break;
+    case CV_32FC1:
+      switch(argc) {
+        case 2:
+          return mrb_mruby_opencv_aset_1f_1(mrb, *mat);
+        case 3:
+          return mrb_mruby_opencv_aset_1f_2(mrb, *mat);
+      }
+      break;
+  }
+  //TODO raise exception ?
   return mrb_nil_value();
 }
 
@@ -147,8 +265,8 @@ mrb_mruby_opencv_core_init(mrb_state* mrb, struct RClass *cv_class) {
   mrb_define_method(mrb, mat_class, "copyTo", mrb_mruby_opencv_copyTo, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
   
   //array access
-  mrb_define_method(mrb, mat_class, "[]", mrb_mruby_opencv_aget, MRB_ARGS_NONE());
-  mrb_define_method(mrb, mat_class, "[]=", mrb_mruby_opencv_aset, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mat_class, "[]", mrb_mruby_opencv_aget, MRB_ARGS_ANY());
+  mrb_define_method(mrb, mat_class, "[]=", mrb_mruby_opencv_aset, MRB_ARGS_ANY());
   //properties
   mrb_define_method(mrb, mat_class, "rows", mrb_mruby_opencv_rows, MRB_ARGS_NONE());
   mrb_define_method(mrb, mat_class, "cols", mrb_mruby_opencv_cols, MRB_ARGS_NONE());
@@ -160,6 +278,10 @@ mrb_mruby_opencv_core_init(mrb_state* mrb, struct RClass *cv_class) {
   mrb_define_const(mrb, cv_class, "CV_8UC2", mrb_fixnum_value(CV_8UC2));
   mrb_define_const(mrb, cv_class, "CV_8UC3", mrb_fixnum_value(CV_8UC3));
   mrb_define_const(mrb, cv_class, "CV_8UC4", mrb_fixnum_value(CV_8UC4));
+  mrb_define_const(mrb, cv_class, "CV_32FC1", mrb_fixnum_value(CV_32FC1));
+  mrb_define_const(mrb, cv_class, "CV_32FC2", mrb_fixnum_value(CV_32FC2));
+  mrb_define_const(mrb, cv_class, "CV_32FC3", mrb_fixnum_value(CV_32FC3));
+  mrb_define_const(mrb, cv_class, "CV_32FC4", mrb_fixnum_value(CV_32FC4));
 }
 
 void
