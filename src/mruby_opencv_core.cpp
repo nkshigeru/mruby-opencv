@@ -2,8 +2,8 @@
 #include <mruby/class.h>
 #include <mruby/data.h>
 #include <mruby/variable.h>
-#include "core.h"
-#include "common.h"
+#include "mruby_opencv_core.h"
+#include "mruby_opencv_common.h"
 
 static void
 mrb_mruby_opencv_free(mrb_state *mrb, void *p) {
@@ -24,7 +24,7 @@ struct RData*
 mrb_mruby_opencv_mat_object_alloc(mrb_state* mrb, cv::Mat* mat)
 {
   struct RClass* cv_class = mrb_class_get(mrb, "CV");
-  struct RClass* mat_class = mrb_class_ptr(mrb_iv_get(mrb, mrb_obj_value(cv_class), mrb_intern(mrb, "Mat")));
+  struct RClass* mat_class = mrb_class_ptr(mrb_iv_get(mrb, mrb_obj_value(cv_class), mrb_intern_lit(mrb, "Mat")));
   struct RData* data = mrb_data_object_alloc(mrb, mat_class, mat, &mrb_mruby_opencv_data_type);
   return data;
 }
@@ -134,27 +134,25 @@ mrb_mruby_opencv_type(mrb_state *mrb, mrb_value self)
   return mrb_nil_value();
 }
 
-
 void
 mrb_mruby_opencv_core_init(mrb_state* mrb, struct RClass *cv_class) {
-  
   //---------
   //cv::Mat
   //---------
   struct RClass *mat_class = mrb_define_class_under(mrb, cv_class, "Mat", mrb->object_class);
   MRB_SET_INSTANCE_TT(mat_class, MRB_TT_DATA);
-  mrb_define_method(mrb, mat_class, "initialize", mrb_mruby_opencv_initialize, ARGS_OPT(3));
+  mrb_define_method(mrb, mat_class, "initialize", mrb_mruby_opencv_initialize, MRB_ARGS_OPT(3));
   
   //method
-  mrb_define_method(mrb, mat_class, "copyTo", mrb_mruby_opencv_copyTo, ARGS_REQ(1)|ARGS_OPT(1));
+  mrb_define_method(mrb, mat_class, "copyTo", mrb_mruby_opencv_copyTo, MRB_ARGS_REQ(1)|MRB_ARGS_OPT(1));
   
   //array access
-  mrb_define_method(mrb, mat_class, "[]", mrb_mruby_opencv_aget, ARGS_NONE());
-  mrb_define_method(mrb, mat_class, "[]=", mrb_mruby_opencv_aset, ARGS_NONE());
+  mrb_define_method(mrb, mat_class, "[]", mrb_mruby_opencv_aget, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mat_class, "[]=", mrb_mruby_opencv_aset, MRB_ARGS_NONE());
   //properties
-  mrb_define_method(mrb, mat_class, "rows", mrb_mruby_opencv_rows, ARGS_NONE());
-  mrb_define_method(mrb, mat_class, "cols", mrb_mruby_opencv_cols, ARGS_NONE());
-  mrb_define_method(mrb, mat_class, "type", mrb_mruby_opencv_type, ARGS_NONE());
+  mrb_define_method(mrb, mat_class, "rows", mrb_mruby_opencv_rows, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mat_class, "cols", mrb_mruby_opencv_cols, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mat_class, "type", mrb_mruby_opencv_type, MRB_ARGS_NONE());
 
 
   //constants

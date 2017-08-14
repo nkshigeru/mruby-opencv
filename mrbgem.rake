@@ -5,6 +5,6 @@ MRuby::Gem::Specification.new('mruby-opencv') do |spec|
   #TODO find library
   
   #test
-  spec.test_args = {'test_jpeg' => File.expand_path(File.dirname(__FILE__)) + '/test/test.jpg'}
+  #spec.test_args = {'test_jpeg' => File.expand_path(File.dirname(__FILE__)) + '/test/test.jpg'}
 
 end

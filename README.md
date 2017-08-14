@@ -1,8 +1,7 @@
 mruby-opencv
 =========
 
-Interface to OpenCV on mruby.
-This project has just begun.
+OpenCV binding for mruby.
 
 Install
 ---------
@@ -12,10 +11,9 @@ Install
 
 ```ruby
   conf.gem 'path/to/here' do |g|
-    g.cxx.include_paths << 'path/to/OpenCV/modules/core/include'
-    g.cxx.include_paths << 'path/to/OpenCV/modules/highgui/include'
-    g.linker.library_paths << 'path/to/OpenCV libraries'
-    g.linker.libraries << %w(opencv_core243 opencv_highgui243)
+    g.cxx.include_paths << 'path/to/OpenCV/include'
+    g.linker.library_paths << 'path/to/OpenCV/lib'
+    g.linker.libraries << %w(opencv_core320)
   end
 ```
 
