@@ -226,20 +226,20 @@ static mrb_value
 mrb_mruby_opencv_rows(mrb_state *mrb, mrb_value self)
 {
   cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
-  if (mat) {
-    return mrb_fixnum_value(mat->rows);
+  if (!mat) {
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", self);
   }
-  return mrb_nil_value();
+  return mrb_fixnum_value(mat->rows);
 }
 
 static mrb_value
 mrb_mruby_opencv_cols(mrb_state *mrb, mrb_value self)
 {
   cv::Mat* mat = mrb_mruby_opencv_mat(mrb, self);
-  if (mat) {
-    return mrb_fixnum_value(mat->cols);
+  if (!mat) {
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", self);
   }
-  return mrb_nil_value();
+  return mrb_fixnum_value(mat->cols);
 }
 
 static mrb_value
@@ -271,7 +271,6 @@ mrb_mruby_opencv_core_init(mrb_state* mrb, struct RClass *cv_class) {
   mrb_define_method(mrb, mat_class, "rows", mrb_mruby_opencv_rows, MRB_ARGS_NONE());
   mrb_define_method(mrb, mat_class, "cols", mrb_mruby_opencv_cols, MRB_ARGS_NONE());
   mrb_define_method(mrb, mat_class, "type", mrb_mruby_opencv_type, MRB_ARGS_NONE());
-
 
   //constants
   mrb_define_const(mrb, cv_class, "CV_8UC1", mrb_fixnum_value(CV_8UC1));
