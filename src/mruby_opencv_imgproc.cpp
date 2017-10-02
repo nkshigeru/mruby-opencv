@@ -25,13 +25,18 @@ mrb_mruby_opencv_resize(mrb_state *mrb, mrb_value self)
   }
   cv::Mat* src = mrb_mruby_opencv_mat(mrb, src_value);
   if (!src) {
-		mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", src_value);
-	}
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", src_value);
+  }
   cv::Mat* dst = mrb_mruby_opencv_mat(mrb, dst_value);
   if (!dst) {
-		mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", dst_value);
-	}
-  cv::resize(*src, *dst, dsize, fx, fy, interpolation);
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", dst_value);
+  }
+  try {
+    cv::resize(*src, *dst, dsize, fx, fy, interpolation);
+  }
+  catch (std::exception& ex) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, ex.what());
+  }
   return mrb_nil_value();
 }
 
