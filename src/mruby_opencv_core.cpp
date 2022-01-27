@@ -119,7 +119,7 @@ mrb_mruby_opencv_aget(mrb_state *mrb, mrb_value self)
   if (!mat) {
     mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", self);
   }
-  int argc = mrb->c->ci->argc;
+  int argc = mrb_get_argc(mrb);
   switch(mat->type()) {
     case CV_8UC1:
       switch(argc) {
@@ -199,7 +199,7 @@ mrb_mruby_opencv_aset(mrb_state *mrb, mrb_value self)
   if (!mat) {
     mrb_raisef(mrb, E_ARGUMENT_ERROR, "%S is not CV::Mat", self);
   }
-  int argc = mrb->c->ci->argc;
+  int argc = mrb_get_argc(mrb);
   switch(mat->type()) {
     case CV_8UC1:
       switch(argc) {
